@@ -52,3 +52,11 @@
 
 (package! polymode)
 (package! poly-markdown)
+;; ;; associate the new polymode to Rmd files:
+;; (add-to-list 'auto-mode-alist
+;;              '("\\.[rR]md\\'" . poly-gfm+r-mode))
+
+
+
+;; evil tutor
+(package! evil-tutor)

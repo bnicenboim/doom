@@ -74,3 +74,59 @@
 ;;
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
+
+
+;; control enter only in interactive mode
+(after! ess-r-mode
+  (map! :map ess-r-mode-map
+        "C-S-<return>" #'ess-eval-buffer))
+
+
+
+; Syntax highlighting is nice, so let’s turn all of that on
+
+(setq ess-R-font-lock-keywords
+      '((ess-R-fl-keyword:keywords . t)
+        (ess-R-fl-keyword:constants . t)
+        (ess-R-fl-keyword:modifiers . t)
+        (ess-R-fl-keyword:fun-defs . t)
+        (ess-R-fl-keyword:assign-ops . t)
+        (ess-R-fl-keyword:%op% . t)
+        (ess-fl-keyword:fun-calls . t)
+        (ess-fl-keyword:numbers . t)
+        (ess-fl-keyword:operators . t)
+        (ess-fl-keyword:delimiters . t)
+        (ess-fl-keyword:= . t)
+        (ess-R-fl-keyword:F&T . t)))
+
+
+;We don’t want R evaluation to hang the editor, hence
+(setq ess-eval-visibly 'nowait)
+
+(after! ess-r-mode
+   (set-ligatures! 'ess-r-mode
+    ;; Functional
+    :def "function"
+    ;; Types
+    :null "NULL"
+    :true "TRUE"
+    :false "FALSE"
+    :int "int"
+    :floar "float"
+    :bool "bool"
+    ;; Flow
+    :not "!"
+    :and "&&" :or "||"
+    :for "for"
+    :in "%in%"
+    :return "return"
+    ;; Other
+    :assign "<-"
+    :multiply "%*%"))
+
+
+
+(setq projectile-project-search-path
+      '(("~/dev" . 2) ("~/Nextcloud/" . 1)))
+
+(modify-syntax-entry ?_ "w")
