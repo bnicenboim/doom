@@ -76,15 +76,88 @@
 ;; they are implemented.
 
 
+;;; defaults
+;;;
+(setq undo-limit 80000000               ; Raise undo-limit to 80Mb
+      evil-want-fine-undo t             ; By default while in insert all changes are one big blob. Be more granular
+      truncate-string-ellipsis "…"                ; Unicode ellispis are nicer than "...", and also save /precious/ space
+)
+
+
+
+;;
+;; Treemacs
+;; Since it has its own iternal concept of project, it needs an external helper to be able to synchronise with other project management tools, such as projectile.
+;; To be able to synchronise treemacs and projectile the treemacs-projectile module must be used. It can be activated using
+
+(use-package treemacs-projectile
+  :after (treemacs projectile))
+
+(after! (treemacs projectile)
+  (treemacs-project-follow-mode 1))
+
+; biblio
+
+(setq! citar-bibliography '("~/Nextcloud/BIBFILE/bib.bib")
+       citar-library-paths '("~/Nextcloud/BIBFILE/")
+       citar-notes-paths '("~/Nextcloud/BIBFILE/notes/"))
+
+;;; company
+(set-company-backend!
+  '(text-mode
+    markdown-mode
+    gfm-mode)
+  '(:separate
+    company-ispell
+    company-files
+    company-yasnippet))
+
+;; ;; tng not selecting https://github.com/doomemacs/doomemacs/issues/1335
+;; (with-eval-after-load 'company
+;;   (add-hook 'evil-local-mode-hook
+;;             (lambda ()
+;;               ;; Note:
+;;               ;; Check if `company-emulation-alist' is in
+;;               ;; `emulation-mode-map-alists', if true, call
+;;               ;; `company-ensure-emulation-alist' to ensure
+;;               ;; `company-emulation-alist' is the first item of
+;;               ;; `emulation-mode-map-alists', thus has a higher
+;;               ;; priority than keymaps of evil-mode.
+;;               ;; We raise the priority of company-mode keymaps
+;;               ;; unconditionally even when completion is not
+;;               ;; activated. This should not cause problems,
+;;               ;; because when completion is activated, the value of
+;;               ;; `company-emulation-alist' is ((t . company-my-keymap)),
+;;               ;; when completion is not activated, the value is ((t . nil)).
+;;               (when (memq 'company-emulation-alist emulation-mode-map-alists)
+;;                 (company-ensure-emulation-alist)))))
+
+;; (add-hook! ess-mode #'evil-normalize-keymaps)
+
+
+;; ;; dictonary
+;;
+(setq ispell-personal-dictionary
+      (expand-file-name "ispell_personal" doom-private-dir))
+
+
+;;; ESS stuff
+;;;
+;; fixes issue with black letters in black background
+;;https://github.com/emacs-ess/ESS/issues/1199#issuecomment-1144181944
+    (defun my-inferior-ess-init ()
+      (setq-local ansi-color-for-comint-mode 'filter)
+      (smartparens-mode 1))
+    (add-hook 'inferior-ess-mode-hook 'my-inferior-ess-init)
+
 ;; control enter only in interactive mode
 (after! ess-r-mode
   (map! :map ess-r-mode-map
         "C-S-<return>" #'ess-eval-buffer))
 
-
+(set-company-backend! 'ess-r-mode '(company-R-args company-R-objects company-dabbrev-code :separate))
 
 ; Syntax highlighting is nice, so let’s turn all of that on
-
 (setq ess-R-font-lock-keywords
       '((ess-R-fl-keyword:keywords . t)
         (ess-R-fl-keyword:constants . t)
@@ -109,14 +182,14 @@
     :def "function"
     ;; Types
     :null "NULL"
-    :true "TRUE"
-    :false "FALSE"
+    ;; :true "TRUE"
+    ;; :false "FALSE"
     :int "int"
     :floar "float"
     :bool "bool"
     ;; Flow
     :not "!"
-    :and "&&" :or "||"
+    ;; :and "&&" :or "||"
     :for "for"
     :in "%in%"
     :return "return"
