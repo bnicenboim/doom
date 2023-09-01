@@ -38,6 +38,19 @@
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type t)
 
+; evil respect visual lines (not working)https://github.com/doomemacs/doomemacs/issues/7249
+(use-package-hook! evil
+  :pre-init
+  (setq evil-respect-visual-line-mode t) ;; sane j and k behavior
+  t)
+
+;; workaround
+(map!
+ :nv "<up>" #'evil-previous-visual-line
+ :nv "<down>" #'evil-next-visual-line
+ :nv "<home>" #'evil-beginning-of-visual-line
+ :nv "<end>" #'evil-end-of-visual-line)
+
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory "~/org/")
@@ -149,6 +162,11 @@
       (setq-local ansi-color-for-comint-mode 'filter)
       (smartparens-mode 1))
     (add-hook 'inferior-ess-mode-hook 'my-inferior-ess-init)
+
+(setq
+   ess-style 'RStudio
+   ess-offset-continued 2
+   ess-expression-offset 0)
 
 ;; control enter only in interactive mode
 (after! ess-r-mode
