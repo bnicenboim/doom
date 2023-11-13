@@ -51,6 +51,14 @@
  :nv "<home>" #'evil-beginning-of-visual-line
  :nv "<end>" #'evil-end-of-visual-line)
 
+
+;; enable word-wrap (almost) everywhere
+;; (+global-word-wrap-mode +1) ; not working for some reason
+
+(global-visual-line-mode t)
+;; disable global word-wrap in emacs-lisp-mode
+;(add-to-list '+word-wrap-disabled-modes 'emacs-lisp-mode)
+
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory "~/org/")
@@ -111,10 +119,13 @@
 
 ; biblio
 
-(setq! citar-bibliography '("~/Nextcloud/BIBFILE/bib.bib")
-       citar-library-paths '("~/Nextcloud/BIBFILE/")
-       citar-notes-paths '("~/Nextcloud/BIBFILE/notes/"))
-
+(setq! citar-bibliography '("~/ownCloud - Bruno Nicenboim@surfdrive.surf.nl/BIBFILE/bib.bib")
+       citar-library-paths '("~/ownCloud - Bruno Nicenboim@surfdrive.surf.nl/BIBFILE/")
+       citar-notes-paths '("~/ownCloud - Bruno Nicenboim@surfdrive.surf.nl/BIBFILE/notes/"))
+(after! citar
+  (dolist
+    (ext '("pdf" "odt" "docx" "doc"))
+    (add-to-list 'citar-file-open-functions `(,ext . citar-file-open-external))))
 ;;; company
 (set-company-backend!
   '(text-mode
@@ -124,6 +135,25 @@
     company-ispell
     company-files
     company-yasnippet))
+
+
+;; change the default pdf viewer
+ (after! tex
+ (setq TeX-view-program-selection
+        '(
+          (output-pdf "Evince")
+         (output-pdf "Zathura")
+          (output-pdf "PDF Tools")
+          (output-pdf "Okular")
+         (output-pdf "preview-pane")
+          ((output-dvi has-no-display-manager)
+           "dvi2tty")
+          ((output-dvi style-pstricks)
+           "dvips and gv")
+          (output-dvi "xdvi")
+          (output-html "xdg-open")
+         )))
+
 
 ;; ;; tng not selecting https://github.com/doomemacs/doomemacs/issues/1335
 ;; (with-eval-after-load 'company
@@ -197,25 +227,27 @@
 (after! ess-r-mode
    (set-ligatures! 'ess-r-mode
     ;; Functional
-    :def "function"
+    ;; :def "function"
     ;; Types
-    :null "NULL"
+    ;; :null "NULL"
     ;; :true "TRUE"
     ;; :false "FALSE"
-    :int "int"
-    :floar "float"
-    :bool "bool"
+    ;; :int "int"
+    ;; :float "float"
+    ;; :bool "bool"
     ;; Flow
-    :not "!"
+    ;; :not "!"
     ;; :and "&&" :or "||"
-    :for "for"
-    :in "%in%"
-    :return "return"
+    ;; :for "for"
+    ;; :in "%in%"
+    ;; :return "return"
     ;; Other
     :assign "<-"
-    :multiply "%*%"))
+    ;; :multiply "%*%"
+    ))
 
-
+;; don't move the comments around
+(setq ess-fancy-comments nil)
 
 (setq projectile-project-search-path
       '(("~/dev" . 2) ("~/Nextcloud/" . 1)))
