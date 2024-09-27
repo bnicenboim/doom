@@ -119,9 +119,9 @@
 
 ; biblio
 
-(setq! citar-bibliography '("~/ownCloud - Bruno Nicenboim@surfdrive.surf.nl/BIBFILE/bib.bib")
-       citar-library-paths '("~/ownCloud - Bruno Nicenboim@surfdrive.surf.nl/BIBFILE/")
-       citar-notes-paths '("~/ownCloud - Bruno Nicenboim@surfdrive.surf.nl/BIBFILE/notes/"))
+(setq! citar-bibliography '("~/ownCloud/BIBFILE/bib.bib")
+       citar-library-paths '("~/ownCloud/BIBFILE/")
+       citar-notes-paths '("~/ownCloud/BIBFILE/notes/"))
 (after! citar
   (dolist
     (ext '("pdf" "odt" "docx" "doc"))
@@ -130,15 +130,85 @@
 (set-company-backend!
   '(text-mode
     markdown-mode
-    gfm-mode)
+    gfm-mode
+    stan-mode)
   '(:separate
     company-ispell
     company-files
     company-yasnippet))
 
+;;;;;;;;;;;;;;;;;
+;; interactive citar bibliography of Rmds
+(defun my/set-citar-bibliography-from-rmd ()
+  "Set `citar-bibliography` based on the bibliography field in the Rmd buffer.
+   Overwrites the content of `citar-bibliography` and stores it as (\"fullpath/references.bib\")."
+  (interactive)
+  (setq citar-bibliography nil) ;; Clear any previous value
+  (when (and (buffer-file-name)
+             (string-equal (file-name-extension (buffer-file-name)) "Rmd"))
+    (save-excursion
+      (goto-char (point-min))
+      ;; Look for the bibliography line with a filename that ends with .bib
+     (if (re-search-forward "^bibliography: ?\\([^ \t\n]+\\.bib\\) ?$" nil t)
+          (let* ((bib-file (match-string 1)) ;; extract the filename ending with .bib
+                 (full-path (expand-file-name bib-file (file-name-directory (buffer-file-name)))))
+            ;; Set the citar-bibliography variable to the full path inside parentheses
+            (setq citar-bibliography (list full-path))
+            ;; Feedback message
+            (message "citar-bibliography set to %s" citar-bibliography))
+        ;; If no match is found, provide feedback
+        (message "No valid bibliography found in the Rmd file.")))));;;;;;;;
+;;;;;;;;;;;
+;;;;;;;;;;;
+;;;;;;;;;;;
 
-;; change the default pdf viewer
- (after! tex
+(use-package stan-mode
+  :mode ("\\.stan\\'" . stan-mode)
+  :hook (stan-mode . stan-mode-setup)
+  ;;
+  :config
+  ;; The officially recommended offset is 2.
+  (setq stan-indentation-offset 2))
+
+;;; company-stan.el
+(use-package company-stan
+  :hook (stan-mode . company-stan-setup)
+  ;;
+  :config
+  ;; Whether to use fuzzy matching in `company-stan'
+  (setq company-stan-fuzzy nil))
+
+;;; eldoc-stan.el
+(use-package eldoc-stan
+  :hook (stan-mode . eldoc-stan-setup)
+  ;;
+  :config
+  ;; No configuration options as of now.
+  )
+
+;;; flycheck-stan.el
+(use-package flycheck-stan
+  ;; Add a hook to setup `flycheck-stan' upon `stan-mode' entry
+  :hook ((stan-mode . flycheck-stan-stanc2-setup)
+         (stan-mode . flycheck-stan-stanc3-setup))
+  :config
+  ;; A string containing the name or the path of the stanc2 executable
+  ;; If nil, defaults to `stanc2'
+  (setq flycheck-stanc-executable nil)
+  ;; A string containing the name or the path of the stanc2 executable
+  ;; If nil, defaults to `stanc3'
+  (setq flycheck-stanc3-executable nil))
+
+;;; stan-snippets.el
+(use-package stan-snippets
+  :hook (stan-mode . stan-snippets-initialize)
+  ;;
+  :config
+  ;; No configuration options as of now.
+  );; change the default pdf viewer
+
+
+(after! tex
  (setq TeX-view-program-selection
         '(
           (output-pdf "Evince")
@@ -175,6 +245,7 @@
 ;;               (when (memq 'company-emulation-alist emulation-mode-map-alists)
 ;;                 (company-ensure-emulation-alist)))))
 
+
 ;; (add-hook! ess-mode #'evil-normalize-keymaps)
 
 
@@ -199,9 +270,22 @@
    ess-expression-offset 0)
 
 ;; control enter only in interactive mode
-(after! ess-r-mode
+;; (after! ess-r-mode
+;;   (map! :map ess-r-mode-map
+;;         "C-S-<return>" #'ess-eval-buffer
+;;          "C-<return>" #'ess-eval-region-or-function-or-paragraph-and-step)
+(after! ess
   (map! :map ess-r-mode-map
-        "C-S-<return>" #'ess-eval-buffer))
+        :n "C-<return>" #'ess-eval-region-or-line-visibly-and-step
+        :v "C-<return>" #'ess-eval-region
+        :n "C-S-<return>" #'ess-eval-buffer
+        :v "C-S-<return>" #'ess-eval-buffer
+        :i "C-S-<return>" #'ess-eval-buffer
+        )
+  )
+
+
+
 
 (set-company-backend! 'ess-r-mode '(company-R-args company-R-objects company-dabbrev-code :separate))
 
@@ -250,6 +334,14 @@
 (setq ess-fancy-comments nil)
 
 (setq projectile-project-search-path
-      '(("~/dev" . 2) ("~/Nextcloud/" . 1)))
+      '(("~/dev" . 2) ("~/ownCloud/" . 1)))
 
 (modify-syntax-entry ?_ "w")
+
+
+;; config forge
+(setq auth-sources '("~/.authinfo.gpg"))
+(add-hook 'code-review-mode-hook
+          (lambda ()
+            ;; include *Code-Review* buffer into current workspace
+            (persp-add-buffer (current-buffer))))
